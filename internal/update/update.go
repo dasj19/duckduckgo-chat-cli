@@ -28,6 +28,9 @@ const (
 	CheckInterval = 4 * time.Hour // Check for updates every 4 hours (reduced for better user experience)
 )
 
+// ErrDisabled is returned when the binary was built with the noupdatecheck tag.
+var ErrDisabled = errors.New("update checks are disabled in this build")
+
 type ReleaseInfo struct {
 	TagName string `json:"tag_name"`
 	Name    string `json:"name"`
@@ -93,6 +96,9 @@ func GetBinaryName(version, osName, arch string) string {
 
 // CheckForUpdates checks if there's a new version available
 func CheckForUpdates(currentVersion string) (*UpdateInfo, error) {
+	if Disabled {
+		return nil, ErrDisabled
+	}
 	color.Yellow("Checking for updates...")
 	return checkForUpdates(currentVersion, true)
 }
@@ -511,6 +517,9 @@ func validateNewBinary(binaryPath string) error {
 
 // HandleUpdateCommand handles the /update command with confirmation
 func HandleUpdateCommand(currentVersion string, force bool) error {
+	if Disabled {
+		return ErrDisabled
+	}
 	if !force {
 		color.Yellow("⚠️  This will update the CLI to the latest version.")
 		color.Yellow("Current location: %s", getCurrentExecutableDir())
@@ -671,6 +680,9 @@ func UpdateLastCheckTime() error {
 // CheckForUpdatesAtStartup checks for updates without writing to the terminal.
 // Callers can defer displaying the result until the prompt is not rendering.
 func CheckForUpdatesAtStartup(currentVersion string) (*UpdateInfo, error) {
+	if Disabled {
+		return nil, nil
+	}
 	// Always check for updates if this is a development version
 	isDev := strings.Contains(currentVersion, "dev") || strings.Contains(currentVersion, "test")
 

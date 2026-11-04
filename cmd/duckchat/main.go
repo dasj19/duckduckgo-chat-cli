@@ -1510,13 +1510,15 @@ func runInteractive() {
 	// drawing the prompt and its completion menu. The result is shown only when
 	// a submitted command has returned control to the executor.
 	startupUpdateResults := make(chan startupUpdateResult, 1)
-	if ui.DebugEnabled() {
-		ui.Debugln("Checking for updates in background")
+	if !update.Disabled {
+		if ui.DebugEnabled() {
+			ui.Debugln("Checking for updates in background")
+		}
+		go func() {
+			info, err := update.CheckForUpdatesAtStartup(Version)
+			startupUpdateResults <- startupUpdateResult{info: info, err: err}
+		}()
 	}
-	go func() {
-		info, err := update.CheckForUpdatesAtStartup(Version)
-		startupUpdateResults <- startupUpdateResult{info: info, err: err}
-	}()
 
 	if ui.DebugEnabled() {
 		if cfg.ShowMenu {
@@ -1913,7 +1915,9 @@ func handleCommand(chatSession *chat.Chat, cfg *config.Config, cmd *command.Comm
 		ui.AIln("DuckDuckGo AI Chat CLI version %s", Version)
 		ui.Mutedln("Go version: %s", runtime.Version())
 		ui.Mutedln("OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
-		if _, err := update.CheckForUpdates(Version); err != nil {
+		if update.Disabled {
+			ui.Mutedln("Update checks: disabled at build time")
+		} else if _, err := update.CheckForUpdates(Version); err != nil {
 			ui.Warningln("Could not check for updates: %v", err)
 		}
 	case cmd.Type == "/speak":

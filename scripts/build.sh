@@ -31,11 +31,18 @@ echo "📚 Generating API documentation..."
 "$ROOT_DIR/scripts/generate-docs.sh"
 
 LDFLAGS="-X main.Version=v$VERSION -X duckduckgo-chat-cli/internal/version.Current=$VERSION"
+# Set NO_UPDATE_CHECK=1 to compile out the GitHub release check and /update.
+BUILD_TAGS=""
+if [[ "${NO_UPDATE_CHECK:-0}" == 1 ]]; then
+  BUILD_TAGS="noupdatecheck"
+  echo "🔕 Update checks disabled (noupdatecheck build tag)"
+fi
+export NO_UPDATE_CHECK
 
 echo "📦 Building Linux AMD64..."
-GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o "$BUILD_DIR/duckduckgo-chat-cli_v${VERSION}_linux_amd64" ./cmd/duckchat
+GOOS=linux GOARCH=amd64 go build -tags "$BUILD_TAGS" -ldflags "$LDFLAGS" -o "$BUILD_DIR/duckduckgo-chat-cli_v${VERSION}_linux_amd64" ./cmd/duckchat
 echo "📦 Building Linux ARM64..."
-GOOS=linux GOARCH=arm64 go build -ldflags "$LDFLAGS" -o "$BUILD_DIR/duckduckgo-chat-cli_v${VERSION}_linux_arm64" ./cmd/duckchat
+GOOS=linux GOARCH=arm64 go build -tags "$BUILD_TAGS" -ldflags "$LDFLAGS" -o "$BUILD_DIR/duckduckgo-chat-cli_v${VERSION}_linux_arm64" ./cmd/duckchat
 
 echo "📦 Building Windows AMD64 with docs/images/logo.png application icon..."
 "$ROOT_DIR/scripts/build_windows_binary.sh" "$VERSION" "$BUILD_DIR/duckduckgo-chat-cli_v${VERSION}_windows_amd64.exe"

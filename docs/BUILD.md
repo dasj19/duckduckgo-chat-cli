@@ -39,6 +39,22 @@ The script writes Linux AMD64 and ARM64 binaries, Windows AMD64 and ARM64 execut
 
 The Windows executable embeds `docs/images/logo.png` as its application icon. The build script uses a pinned `go-winres` version to create the Windows resources.
 
+### Build without the update check
+
+By default the CLI checks GitHub for a newer release at startup and in `/version`, and `/update` can replace the binary. To compile the applications without these features (for example, for distribution packages or offline use), build with the `noupdatecheck` tag:
+
+```sh
+go build -tags noupdatecheck ./cmd/duckchat
+```
+
+The build scripts accept the same option through an environment variable:
+
+```sh
+NO_UPDATE_CHECK=1 ./scripts/build.sh 1.9.2
+```
+
+In these builds the CLI never contacts to GitHub for updates, and `/update` reports that updates are disabled.
+
 ## Run checks
 
 Before opening a pull request, run:

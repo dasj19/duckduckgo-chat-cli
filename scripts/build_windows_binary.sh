@@ -38,7 +38,12 @@ test -s "$RESOURCE"
 
 mkdir -p "$(dirname -- "$OUTPUT_PATH")"
 LDFLAGS="-X main.Version=v$VERSION -X duckduckgo-chat-cli/internal/version.Current=$VERSION"
+BUILD_TAGS=""
+if [[ "${NO_UPDATE_CHECK:-0}" == 1 ]]; then
+  BUILD_TAGS="noupdatecheck"
+fi
 GOOS=windows GOARCH="$ARCH" go build \
+  -tags "$BUILD_TAGS" \
   -ldflags "$LDFLAGS" \
   -o "$OUTPUT_PATH" \
   "$ROOT_DIR/cmd/duckchat"
